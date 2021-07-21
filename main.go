@@ -1,16 +1,18 @@
 package main
 
 import (
+	"flea-market/router"
 	"net/http"
+
+	_ "flea-market/model"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := gin.Default()
+	r := gin.Default()
+	r.StaticFS("/static", http.Dir("./static"))
+	router.LoadApiRouter(r)
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "it works"})
-	})
-	router.Run(":8080")
+	r.Run(":8080")
 }
