@@ -2,6 +2,8 @@ package main
 
 import (
 	"flea-market/router"
+	"fmt"
+	"log"
 	"net/http"
 
 	_ "flea-market/model"
@@ -10,9 +12,12 @@ import (
 )
 
 func main() {
+	fmt.Println("air works!")
 	r := gin.Default()
 	r.StaticFS("/static", http.Dir("./static"))
 	router.LoadApiRouter(r)
 
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

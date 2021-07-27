@@ -9,18 +9,18 @@ import (
 
 const (
 	dbDriverName = "sqlite3"
-	dbName       = "./data.db3"
+	dbName       = "./db/data.db3"
 )
 
-var db *sql.DB
+var Db *sql.DB
 
 func init() {
 	var err error
-	db, err = sql.Open(dbDriverName, dbName)
+	Db, err = sql.Open(dbDriverName, dbName)
 	if checkErr(err) {
 		return
 	}
-	if err = createTable(db); checkErr(err) {
+	if err = createTable(Db); checkErr(err) {
 		return
 	}
 }
@@ -29,7 +29,7 @@ func createTable(db *sql.DB) error {
 	sql := `CREATE TABLE IF NOT EXISTS "f_user" (
 		"user_id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 		"nickname" TEXT(32),
-		"openid" text(32) NOT NULL,
+		"open_id" text(32) NOT NULL,
 		"gender" integer,
 		"avatar_url" TEXT,
 		"country" TEXT,

@@ -1,13 +1,13 @@
 package user
 
 import (
-	"flea-market/model"
+	"database/sql"
+	"flea-market/model/userModel"
 	"fmt"
-	"log"
-	"net/http"
-	"time"
-
 	"github.com/dgrijalva/jwt-go"
+	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ type LoginParams struct {
 }
 
 //自定义一个字符串
-var jwtkey = []byte("www.topgoer.com")
+var jwtkey = []byte("flea-market")
 var str string
 
 type Claims struct {
@@ -33,21 +33,46 @@ type Claims struct {
 }
 
 func Login(c *gin.Context) {
+	fmt.Println("in login")
 	var form LoginParams
 	if err := c.Bind(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	log.Println(form)
+	//fmt.Println(form)
 	// 根据openid查找 user
-	if user, err := model.GetUserByOpenId(form.OpenId); err != nil {
-		log.Fatal(err)
+	if user, err := userModel.GetUserByOpenId(form.OpenId); err != nil {
+		if err == sql.ErrNoRows {
+			var gender int
+			gender, _ = strconv.Atoi(form.Gender)
+			user = &userModel.User{
+				Openid:form.OpenId,
+				Nickname:form.NickName,
+				Gender: gender,
+				AvatarUrl:form.AvatarUrl,
+				Country:form.Country,
+				Province:form.Province,
+				City:form.City,
+			}
+			if user,err = userModel.AddUser(user); err != nil {
+				fmt.Println("add user err: ",err)
+			} else {
+				c.JSON(200, gin.H{"token": createToken(user)})
+				return
+			}
+		} else {
+			fmt.Println("find user err: ",err)
+		}
 	} else {
-		log.Fatal(user)
+		fmt.Println(user)
 	}
+	c.JSON(500, gin.H{"code": "500","message":"login failed!"})
+}
+
+func createToken(u *userModel.User) string {
 	claims := &Claims{
-		UserId: 2,
+		UserId: uint(u.UserId),
 		StandardClaims: jwt.StandardClaims{
 			// ExpiresAt: expireTime.Unix(), //不设置过期时间
 			IssuedAt: time.Now().Unix(),
@@ -61,6 +86,7 @@ func Login(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	str = tokenString
-	c.JSON(200, gin.H{"token": tokenString})
+	return tokenString
+
+
 }
