@@ -24,8 +24,8 @@ type LoginParams struct {
 }
 
 //自定义一个字符串
-var jwtkey = []byte("flea-market")
-var str string
+var jwtKey = []byte("flea-market")
+
 
 type Claims struct {
 	UserId uint
@@ -76,17 +76,15 @@ func createToken(u *userModel.User) string {
 		StandardClaims: jwt.StandardClaims{
 			// ExpiresAt: expireTime.Unix(), //不设置过期时间
 			IssuedAt: time.Now().Unix(),
-			Issuer:   "127.0.0.1",  // 签名颁发者
+			Issuer:   "flea market",  // 签名颁发者
 			Subject:  "user token", //签名主题
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// fmt.Println(token)
-	tokenString, err := token.SignedString(jwtkey)
+	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 	return tokenString
-
-
 }

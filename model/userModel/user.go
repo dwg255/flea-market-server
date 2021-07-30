@@ -1,6 +1,7 @@
 package userModel
 
 import (
+	"database/sql"
 	"flea-market/model"
 	"time"
 )
@@ -28,7 +29,7 @@ func AddUser( u *User)( *User, error) {
 		if err != nil {
 			return nil,err
 		}
-		res, err := stmt.Exec(&u.Nickname, &u.Openid, &u.Gender, &u.AvatarUrl, &u.Country, &u.Province, &u.City, &u.Address, time.Now().Unix())
+		res, err := stmt.Exec(u.Nickname, u.Openid, u.Gender, u.AvatarUrl, u.Country, u.Province, u.City, u.Address, time.Now().Unix())
 		lastInsertId,_ := res.LastInsertId()
 		u.UserId = int(lastInsertId)
 		return u,err
@@ -46,7 +47,7 @@ func GetUserById(userId int) (u *User, err error) {
 	defer stmt.Close()
 
 	row := stmt.QueryRow(userId)
-	row.Scan(&u.UserId, &u.Nickname, &u.Openid, &u.Gender, &u.AvatarUrl, &u.Country, &u.Province, &u.City, &u.Address, &u.Created)
+	u,err = ScanRow(row)
 	return
 
 }
@@ -61,6 +62,12 @@ func GetUserByOpenId(openId string) (u *User, err error) {
 	defer stmt.Close()
 
 	row := stmt.QueryRow(openId)
+	u,err = ScanRow(row)
+	return
+
+}
+
+func ScanRow (row *sql.Row) (u *User,err error) {
 	var UserId    int
 	var Nickname  string
 	var Openid    string
@@ -72,7 +79,7 @@ func GetUserByOpenId(openId string) (u *User, err error) {
 	var Address   string
 	var Created   int
 	if err = row.Scan(&UserId, &Nickname, &Openid, &Gender, &AvatarUrl, &Country, &Province, &City, &Address, &Created);err != nil {
-		return u,err
+		return
 	}
 	u = &User{
 		UserId,
@@ -87,5 +94,4 @@ func GetUserByOpenId(openId string) (u *User, err error) {
 		Created,
 	}
 	return
-
 }
