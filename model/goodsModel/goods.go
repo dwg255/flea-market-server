@@ -2,6 +2,7 @@ package goodsModel
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	"flea-market/model"
@@ -9,64 +10,94 @@ import (
 )
 
 type Goods struct {
-	GoodsId int
-	Title string
-	Price float64
-	Pics string
-	UserId int
-	Nickname string
-	AvatarUrl string
-	Address string
-	Latitude float64
-	Longitude float64
-	Tags string
-	Content string
-	NewMessage string
-	GoodsNum int
-	StarNum int
-	FavNum int
-	ViewsNum int
-	Created int
+	GoodsId int `json:"goods_id"`
+	Title string `json:"title"`
+	Price float64 `json:"price"`
+	Pics string `json:"pics"`
+	UserId int `json:"user_id"`
+	Nickname string `json:"nickname"`
+	AvatarUrl string `json:"avatar_url"`
+	Address string `json:"address"`
+	Latitude float64 `json:"latitude"`
+	Longitude float64`json:"longitude"`
+	Tags string`json:"tags"`
+	Content string`json:"content"`
+	NewMessage string`json:"new_message"`
+	GoodsNum int`json:"goods_num"`
+	StarNum int`json:"star_num"`
+	FavNum int`json:"fav_num"`
+	ViewsNum int`json:"views_num"`
+	Created int`json:"created"`
+	OnlineSell bool	`json:"online_sell"`		// 是否在线交易
+	ExpressType int	`json:"express_type"`		// 1 快递 2 自提
+	CatId int		`json:"cat_id"`		// 分类ID
+	Status int		`json:"status"`		// 状态 0 正常 1 售出 2 下架
 }
 
 //查找数量
 func GetCount(where string) (int, error) {
 	sql := `select count(1) from f_goods ` + where
+	//fmt.Println(sql)
 	stmt, err :=  model.Db.Prepare(sql)
-	defer stmt.Close()
 	if err != nil {
 		return 0 ,nil
 	}
 	defer stmt.Close()
-
 	row := stmt.QueryRow()
 	var count int
 	err = row.Scan(&count)
 	return count ,err
 }
 
-// 添加用户
+// 添加商品
 func AddGoods(goods *Goods)(*Goods,error){
-	sqlStr := `insert into f_goods (title,price,pics,user_id,nickname,avatar_url,address,latitude,longitude,tags,content,new_message,goods_num,star_num,fav_num,views_num,created) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+	sqlStr := `insert into f_goods (title,price,pics,user_id,nickname,avatar_url,address,latitude,longitude,tags,content,new_message,goods_num,star_num,fav_num,views_num,created,online_sell,express_type,cat_id) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		//fmt.Println("err1",err.Error())
 		return nil,err
 	} else {
 		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(goods.Title, goods.Price, goods.Pics, goods.UserId, goods.Nickname, goods.AvatarUrl, goods.Address, goods.Latitude, goods.Longitude, goods.Tags, goods.Content, goods.NewMessage, goods.GoodsNum, goods.StarNum, goods.FavNum, goods.ViewsNum,  time.Now().Unix(),goods.OnlineSell,goods.ExpressType,goods.CatId)
 		if err != nil {
 			return nil,err
 		}
-		res, err := stmt.Exec(goods.Title, goods.Price, goods.Pics, goods.UserId, goods.Nickname, goods.AvatarUrl, goods.Address, goods.Latitude, goods.Longitude, goods.Tags, goods.Content, goods.NewMessage, goods.GoodsNum, goods.StarNum, goods.FavNum, goods.ViewsNum, goods.Created, time.Now().Unix())
+
 		lastInsertId,_ := res.LastInsertId()
 		goods.UserId = int(lastInsertId)
 		return goods,err
 	}
 }
 
+// 编辑商品
+func UpdateGoods(goods *Goods)(*Goods,error){
+	sqlStr := `update f_goods set title = ?, set price = ? ,set pics = ?,set user_id = ?,set nickname = ?,set avatar_url = ?,set address = ?,set latitude = ?,set longitude = ?,set tags = ?,set content = ?,set new_message = ?,set goods_num = ?,set star_num = ?,set fav_num = ?,set views_num = ?,set created = ?,set online_sell = ?,set express_type = ?, set cat_id = ?) where goods_id = ?`
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return nil,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(goods.Title, goods.Price, goods.Pics, goods.UserId, goods.Nickname, goods.AvatarUrl, goods.Address, goods.Latitude, goods.Longitude, goods.Tags, goods.Content, goods.NewMessage, goods.GoodsNum, goods.StarNum, goods.FavNum, goods.ViewsNum,  time.Now().Unix(),goods.OnlineSell,goods.ExpressType,goods.GoodsId,goods.CatId)
+		if err != nil {
+			return nil,err
+		}
+
+		rowsAffected,_ := res.RowsAffected()
+		if rowsAffected == 0 {
+			err = nil	//数据没有修改
+		}
+		return goods,err
+	}
+}
+
+// 改变状态
+
+
 // 根据主键查找
 func GetGoodsById(goodsId int) (goods *Goods, err error) {
 	sql := `select * from f_goods where goods_id = ?`
 	stmt, err :=  model.Db.Prepare(sql)
-	defer stmt.Close()
 	if err != nil {
 		return
 	}
@@ -79,11 +110,12 @@ func GetGoodsById(goodsId int) (goods *Goods, err error) {
 
 // 条件查找
 func GetGoods(where string,offset int,limit int) (goodsList []*Goods, err error) {
-	sqlStr := `select * from f_goods ` + where + ` limit(?,?)`
+	sqlStr := `select * from f_goods ` + where + ` limit ?,?`
 	var stmt *sql.Stmt
 	stmt, err =  model.Db.Prepare(sqlStr)
-	defer stmt.Close()
 	if err != nil {
+		fmt.Println(sqlStr)
+		fmt.Println(err)
 		return
 	}
 	defer stmt.Close()
@@ -92,6 +124,8 @@ func GetGoods(where string,offset int,limit int) (goodsList []*Goods, err error)
 		return
 	}
 	var goods *Goods
+	goodsList = make([]*Goods,0)
+	//fmt.Println(sqlStr,offset ,limit )
 	for rows.Next() {
 		goods,err = ScanRows(rows)
 		if err != nil {
@@ -127,8 +161,12 @@ func ScanRow (row *sql.Row) (u *Goods,err error) {
 		favNum int
 		viewsNum int
 		created int
+		onlineSell bool
+		expressType int
+		catId int
+		status int
 	)
-	if err = row.Scan(&goodsId,&title,&price,&pics,&userId,&nickname,&avatarUrl,&address,&latitude,&longitude,&tags,&content,&newMessage,&goodsNum,&starNum,&favNum,&viewsNum,&created,);err != nil {
+	if err = row.Scan(&goodsId,&title,&price,&pics,&userId,&nickname,&avatarUrl,&address,&latitude,&longitude,&tags,&content,&newMessage,&goodsNum,&starNum,&favNum,&viewsNum,&created,&onlineSell,&expressType,&catId,&status);err != nil {
 		return
 	}
 	u = &Goods{
@@ -150,9 +188,14 @@ func ScanRow (row *sql.Row) (u *Goods,err error) {
 		favNum,
 		viewsNum,
 		created,
+		onlineSell,
+		expressType,
+		catId,
+		status,
 	}
 	return
 }
+
 func ScanRows (row *sql.Rows) (u *Goods,err error) {
 	var (
 		goodsId int
@@ -173,8 +216,12 @@ func ScanRows (row *sql.Rows) (u *Goods,err error) {
 		favNum int
 		viewsNum int
 		created int
+		onlineSell bool
+		expressType int
+		catId int
+		status int
 	)
-	if err = row.Scan(&goodsId,&title,&price,&pics,&userId,&nickname,&avatarUrl,&address,&latitude,&longitude,&tags,&content,&newMessage,&goodsNum,&starNum,&favNum,&viewsNum,&created,);err != nil {
+	if err = row.Scan(&goodsId,&title,&price,&pics,&userId,&nickname,&avatarUrl,&address,&latitude,&longitude,&tags,&content,&newMessage,&goodsNum,&starNum,&favNum,&viewsNum,&created,&onlineSell,&expressType,&catId,&status);err != nil {
 		return
 	}
 	u = &Goods{
@@ -196,6 +243,10 @@ func ScanRows (row *sql.Rows) (u *Goods,err error) {
 		favNum,
 		viewsNum,
 		created,
+		onlineSell,
+		expressType,
+		catId,
+		status,
 	}
 	return
 }

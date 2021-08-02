@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -20,9 +21,8 @@ func init() {
 	if checkErr(err) {
 		return
 	}
-	if err = createTable(Db); checkErr(err) {
-		return
-	}
+	err = createTable(Db)
+	checkErr(err)
 }
 
 func createTable(db *sql.DB) error {
@@ -60,8 +60,29 @@ func createTable(db *sql.DB) error {
 		"star_num" INTEGER,
 		"fav_num" INTEGER,
 		"views_num" INTEGER,
-		"created" integer
+		"created" INTEGER
+        "online_sell"  INTEGER,
+		"express_type"  INTEGER,
+    	"cat_id" INTEGER,
+    	"status" INTEGER                    
 	  );`
+	if _, err := db.Exec(sql); err != nil {
+		return err
+	}
+	sql = `CREATE TABLE IF NOT EXISTS  "f_dialog" (
+		"id"  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+		"goods_id"  INTEGER,
+		"user_id"  INTEGER,
+		"avatar"  TEXT,
+		"nickname"  TEXT,
+		"customer_user_id"  INTEGER,
+		"customer_avatar"  TEXT,
+		"customer_nickname"  TEXT,
+		"question"  TEXT,
+		"answer"  TEXT,
+		"status"  INTEGER,
+		"created"  INTEGER
+		);`
 	if _, err := db.Exec(sql); err != nil {
 		return err
 	}
@@ -70,6 +91,7 @@ func createTable(db *sql.DB) error {
 func checkErr(e error) bool {
 	if e != nil {
 		log.Fatal(e)
+		fmt.Println("fatal err",e.Error())
 		return true
 	}
 	return false
