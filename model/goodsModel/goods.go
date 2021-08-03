@@ -22,7 +22,7 @@ type Goods struct {
 	Longitude float64`json:"longitude"`
 	Tags string`json:"tags"`
 	Content string`json:"content"`
-	NewMessage string`json:"new_message"`
+	NewMessage interface{}`json:"new_message"`
 	GoodsNum int`json:"goods_num"`
 	StarNum int`json:"star_num"`
 	FavNum int`json:"fav_num"`
@@ -70,15 +70,75 @@ func AddGoods(goods *Goods)(*Goods,error){
 }
 
 // 编辑商品
+func UpdateStarNum(goodsId int,num int)(int64,error){
+	sqlStr := "update f_goods set star_num = star_num + ? where goods_id = ?"
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return 0,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(num,goodsId)
+		if err != nil {
+			return 0,err
+		}
+		rowsAffected,_ := res.RowsAffected()
+		if rowsAffected == 0 {
+			err = nil	//数据没有修改
+		}
+		return rowsAffected,err
+	}
+}
+
+// 编辑商品
+func UpdateFavNum(goodsId int,num int)(int64,error){
+	sqlStr := "update f_goods set fav_num = fav_num + ? where goods_id = ?"
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return 0,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(num,goodsId)
+		if err != nil {
+			return 0,err
+		}
+		rowsAffected,_ := res.RowsAffected()
+		if rowsAffected == 0 {
+			err = nil	//数据没有修改
+		}
+		return rowsAffected,err
+	}
+}
+
+// 编辑商品
+func UpdateStatus(goodsId,userId,status int)(int64,error){
+	sqlStr := "update f_goods set status = ? where goods_id = ? and user_id = ?"
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return 0,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(status,goodsId,userId)
+		if err != nil {
+			return 0,err
+		}
+		rowsAffected,_ := res.RowsAffected()
+		return rowsAffected,err
+	}
+}
+
+// 编辑商品
 func UpdateGoods(goods *Goods)(*Goods,error){
-	sqlStr := `update f_goods set title = ?, set price = ? ,set pics = ?,set user_id = ?,set nickname = ?,set avatar_url = ?,set address = ?,set latitude = ?,set longitude = ?,set tags = ?,set content = ?,set new_message = ?,set goods_num = ?,set star_num = ?,set fav_num = ?,set views_num = ?,set created = ?,set online_sell = ?,set express_type = ?, set cat_id = ?) where goods_id = ?`
+	sqlStr := "update f_goods set `title` = ?, `price` = ? ,pics = ?,user_id = ?,`nickname` = ?,avatar_url = ?,`address` = ?,`latitude` = ?,`longitude` = ?,`tags` = ?,`content` = ?,new_message = ?,goods_num = ?,star_num = ?,fav_num = ?,views_num = ?,online_sell = ?,express_type = ?, cat_id = ? where goods_id = ?"
 	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
 		fmt.Println("err1",err.Error())
 		return nil,err
 	} else {
 		defer stmt.Close()
 		var res sql.Result
-		res, err = stmt.Exec(goods.Title, goods.Price, goods.Pics, goods.UserId, goods.Nickname, goods.AvatarUrl, goods.Address, goods.Latitude, goods.Longitude, goods.Tags, goods.Content, goods.NewMessage, goods.GoodsNum, goods.StarNum, goods.FavNum, goods.ViewsNum,  time.Now().Unix(),goods.OnlineSell,goods.ExpressType,goods.GoodsId,goods.CatId)
+		res, err = stmt.Exec(goods.Title, goods.Price, goods.Pics, goods.UserId, goods.Nickname, goods.AvatarUrl, goods.Address, goods.Latitude, goods.Longitude, goods.Tags, goods.Content, goods.NewMessage, goods.GoodsNum, goods.StarNum, goods.FavNum, goods.ViewsNum, goods.OnlineSell,goods.ExpressType,goods.CatId,goods.GoodsId)
 		if err != nil {
 			return nil,err
 		}
@@ -86,7 +146,9 @@ func UpdateGoods(goods *Goods)(*Goods,error){
 		rowsAffected,_ := res.RowsAffected()
 		if rowsAffected == 0 {
 			err = nil	//数据没有修改
+			//fmt.Println("数据没有修改ss")
 		}
+		//fmt.Println("rowsAffected = " ,rowsAffected)
 		return goods,err
 	}
 }

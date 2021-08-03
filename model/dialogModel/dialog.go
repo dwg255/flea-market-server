@@ -42,6 +42,27 @@ func AddDialog(dialog *Dialog)(*Dialog,error){
 	}
 }
 
+// 编辑商品
+func UpdateDialog(answer string,where string)(int64,error){
+	sqlStr := `update f_dialog set answer = ? ` + where
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return 0,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(answer)
+		if err != nil {
+			return 0,err
+		}
+
+		rowsAffected,_ := res.RowsAffected()
+		if rowsAffected == 0 {
+			err = nil	//数据没有修改
+		}
+		return rowsAffected,err
+	}
+}
 // 查询商品全部对话
 
 // 条件查找
@@ -68,6 +89,21 @@ func GetDialogs(where string) (dialogList []*Dialog, err error) {
 		}
 		dialogList = append(dialogList, dialog)
 	}
+	return
+}
+// 条件查找
+func GetOne(where string,order string) (dialog *Dialog, err error) {
+	sqlStr := `select * from f_dialog ` + where + order + " limit 1 "
+	var stmt *sql.Stmt
+	stmt, err =  model.Db.Prepare(sqlStr)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow()
+
+	dialog,err = ScanRow(row)
 	return
 }
 

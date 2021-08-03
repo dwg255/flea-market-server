@@ -7,16 +7,16 @@ import (
 )
 
 type User struct {
-	UserId    int
-	Nickname  string
-	Openid    string
-	Gender    int
-	AvatarUrl string
-	Country   string
-	Province  string
-	City      string
-	Address   string
-	Created   int
+	UserId    int `json:"user_id"`
+	Nickname  string `json:"nickname"`
+	Openid    string `json:"openid"`
+	Gender    int `json:"gender"`
+	AvatarUrl string `json:"avatar_url"`
+	Country   string `json:"country"`
+	Province  string `json:"province"`
+	City      string `json:"city"`
+	Address   string `json:"address"`
+	Created   int `json:"created"`
 }
 
 // 添加用户

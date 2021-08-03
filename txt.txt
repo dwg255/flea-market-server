@@ -1,12 +1,1 @@
-id
-goodsId
-userId
-avatar
-nickname
-customerUserId
-customerAvatar
-customerNickname
-question
-answer
-status
-created
+,dialog.GoodsId,dialog.UserId,dialog.Avatar,dialog.Nickname,dialog.CustomerUserId,dialog.CustomerAvatar,dialog.CustomerNickname,dialog.Question,dialog.Answer

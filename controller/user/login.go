@@ -5,7 +5,6 @@ import (
 	"flea-market/common/tools"
 	"flea-market/model/userModel"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -20,17 +19,6 @@ type LoginParams struct {
 	Country   string `form:"country" json:"country"`
 	Province  string `form:"province" json:"province"`
 	City      string `form:"city" json:"city"`
-}
-
-//自定义一个字符串
-var jwtKey = []byte("flea-market")
-
-
-type Claims struct {
-	UserId uint
-	NickName string
-	Avatar string
-	jwt.StandardClaims
 }
 
 func Login(c *gin.Context) {
@@ -59,14 +47,14 @@ func Login(c *gin.Context) {
 			if user,err = userModel.AddUser(user); err != nil {
 				fmt.Println("add user err: ",err)
 			} else {
-				c.JSON(200, gin.H{"token": tools.CreateToken(user)})
+				c.JSON(200, gin.H{"user_info":user,"token": tools.CreateToken(user)})
 				return
 			}
 		} else {
 			fmt.Println("find user err: ",err)
 		}
 	} else {
-		c.JSON(200, gin.H{"token": tools.CreateToken(user)})
+		c.JSON(200, gin.H{"user_info":user,"token": tools.CreateToken(user)})
 		return
 	}
 	c.JSON(500, gin.H{"code": "500","message":"login failed!"})
