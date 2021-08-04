@@ -4,6 +4,7 @@ import (
 	"flea-market/controller/dialog"
 	"flea-market/controller/goods"
 	"flea-market/controller/star"
+	"flea-market/controller/upload"
 	"flea-market/controller/user"
 
 	"github.com/gin-gonic/gin"
@@ -31,5 +32,8 @@ func LoadApiRouter(r *gin.Engine) {
 		// 点赞相关
 		api.POST("/star/add",star.Add)
 		api.POST("/star/remove",star.Remove)
+
+		//图片上传
+		api.POST("/upload", upload.UploadImg)
 	}
 }
