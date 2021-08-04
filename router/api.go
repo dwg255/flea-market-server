@@ -21,6 +21,7 @@ func LoadApiRouter(r *gin.Engine) {
 		api.POST("/goods/list",goods.List)
 		api.POST("/goods/detail",goods.Detail)
 		api.POST("/goods/status",goods.UpdateStatus)
+		api.POST("/goods/delete",goods.Delete)
 
 		// 留言相关
 		api.POST("/dialog/add",dialog.Add)

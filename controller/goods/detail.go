@@ -33,10 +33,14 @@ func Detail(c *gin.Context) {
 				} else {
 					isStar = true
 				}
+
+				total,_ := goodsModel.GetCount(" where user_id = " + strconv.Itoa(goods.GoodsId))
+
 				c.JSON(http.StatusOK,gin.H {
 					"goodsInfo":goods,
 					"dialogList":dialogList,
 					"star":isStar,
+					"goods_num":total,
 				})
 				//fmt.Println("[before] ",goods)
 				goods.ViewsNum ++

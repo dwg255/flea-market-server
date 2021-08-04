@@ -2,10 +2,9 @@ package goodsModel
 
 import (
 	"database/sql"
+	"flea-market/model"
 	"fmt"
 	"strconv"
-
-	"flea-market/model"
 	"time"
 )
 
@@ -35,7 +34,7 @@ type Goods struct {
 }
 
 //查找数量
-func GetCount(where string) (int, error) {
+func GetCount(where string,args ...interface{}) (int, error) {
 	sql := `select count(1) from f_goods ` + where
 	//fmt.Println(sql)
 	stmt, err :=  model.Db.Prepare(sql)
@@ -43,7 +42,7 @@ func GetCount(where string) (int, error) {
 		return 0 ,nil
 	}
 	defer stmt.Close()
-	row := stmt.QueryRow()
+	row := stmt.QueryRow(args...)
 	var count int
 	err = row.Scan(&count)
 	return count ,err
@@ -129,6 +128,20 @@ func UpdateStatus(goodsId,userId,status int)(int64,error){
 	}
 }
 
+func Update(sqlStr string,args ...interface{}) (int64,error) {
+	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
+		fmt.Println("err1",err.Error())
+		return 0,err
+	} else {
+		defer stmt.Close()
+		var res sql.Result
+		res, err = stmt.Exec(args...)
+		if err != nil {
+			return 0,err
+		}
+		return res.RowsAffected()
+	}
+}
 // 编辑商品
 func UpdateGoods(goods *Goods)(*Goods,error){
 	sqlStr := "update f_goods set `title` = ?, `price` = ? ,pics = ?,user_id = ?,`nickname` = ?,avatar_url = ?,`address` = ?,`latitude` = ?,`longitude` = ?,`tags` = ?,`content` = ?,new_message = ?,goods_num = ?,star_num = ?,fav_num = ?,views_num = ?,online_sell = ?,express_type = ?, cat_id = ? where goods_id = ?"
@@ -171,8 +184,8 @@ func GetGoodsById(goodsId int) (goods *Goods, err error) {
 }
 
 // 条件查找
-func GetGoods(where string,offset int,limit int) (goodsList []*Goods, err error) {
-	sqlStr := `select * from f_goods ` + where + ` limit ?,?`
+func GetGoods(where string,args ...interface{}) (goodsList []*Goods, err error) {
+	sqlStr := `select * from f_goods ` + where
 	var stmt *sql.Stmt
 	stmt, err =  model.Db.Prepare(sqlStr)
 	if err != nil {
@@ -181,7 +194,7 @@ func GetGoods(where string,offset int,limit int) (goodsList []*Goods, err error)
 		return
 	}
 	defer stmt.Close()
-	rows,err := stmt.Query(offset,limit)
+	rows,err := stmt.Query(args...)
 	if err != nil {
 		return
 	}
@@ -200,7 +213,7 @@ func GetGoods(where string,offset int,limit int) (goodsList []*Goods, err error)
 
 // 根据用户id查找
 func GetGoodsByUserId(userId int,offset int,limit int) (goodsList []*Goods, err error) {
-	return GetGoods("user_id=" + strconv.Itoa(userId),offset ,limit )
+	return GetGoods("user_id= ? limit ?,?" , strconv.Itoa(userId),offset,limit )
 }
 
 func ScanRow (row *sql.Row) (u *Goods,err error) {
