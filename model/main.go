@@ -36,7 +36,8 @@ func createTable(db *sql.DB) error {
 		"province" TEXT,
 		"city" TEXT,
 		"address" TEXT,
-		"created" integer
+		"created" integer,
+    	"phone"  TEXT
 	  )`
 	if _, err := db.Exec(sql); err != nil {
 		return err

@@ -35,9 +35,10 @@ type Goods struct {
 
 //查找数量
 func GetCount(where string,args ...interface{}) (int, error) {
-	sql := `select count(1) from f_goods ` + where
+	sqlStr := `select count(1) from f_goods ` + where
+	fmt.Println(sqlStr,args)
 	//fmt.Println(sql)
-	stmt, err :=  model.Db.Prepare(sql)
+	stmt, err :=  model.Db.Prepare(sqlStr)
 	if err != nil {
 		return 0 ,nil
 	}
@@ -186,6 +187,7 @@ func GetGoodsById(goodsId int) (goods *Goods, err error) {
 // 条件查找
 func GetGoods(where string,args ...interface{}) (goodsList []*Goods, err error) {
 	sqlStr := `select * from f_goods ` + where
+	fmt.Println(sqlStr)
 	var stmt *sql.Stmt
 	stmt, err =  model.Db.Prepare(sqlStr)
 	if err != nil {

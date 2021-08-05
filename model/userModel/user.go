@@ -17,19 +17,17 @@ type User struct {
 	City      string `json:"city"`
 	Address   string `json:"address"`
 	Created   int `json:"created"`
+	Phone 	  string `json:"phone"`
 }
 
 // 添加用户
 func AddUser( u *User)( *User, error) {
-	sqlStr := `insert into f_user (nickname, open_id, gender, avatar_url, country, province, city, address, created) values(?,?,?,?,?,?,?,?,?)`
+	sqlStr := `insert into f_user (nickname, open_id, gender, avatar_url, country, province, city, address, created,phone) values(?,?,?,?,?,?,?,?,?,?)`
 	if stmt, err := model.Db.Prepare(sqlStr); err != nil {
 		return nil,err
 	} else {
 		defer stmt.Close()
-		if err != nil {
-			return nil,err
-		}
-		res, err := stmt.Exec(u.Nickname, u.Openid, u.Gender, u.AvatarUrl, u.Country, u.Province, u.City, u.Address, time.Now().Unix())
+		res, err := stmt.Exec(u.Nickname, u.Openid, u.Gender, u.AvatarUrl, u.Country, u.Province, u.City, u.Address, time.Now().Unix(),u.Phone)
 		lastInsertId,_ := res.LastInsertId()
 		u.UserId = int(lastInsertId)
 		return u,err
@@ -38,9 +36,9 @@ func AddUser( u *User)( *User, error) {
 
 // 根据主键查找
 func GetUserById(userId int) (u *User, err error) {
-	sql := `select * from f_user where user_id = ?`
-	stmt, err :=  model.Db.Prepare(sql)
-	defer stmt.Close()
+	sqlStr := `select * from f_user where user_id = ?`
+	var stmt *sql.Stmt
+	stmt, err =  model.Db.Prepare(sqlStr)
 	if err != nil {
 		return
 	}
@@ -78,7 +76,8 @@ func ScanRow (row *sql.Row) (u *User,err error) {
 	var City      string
 	var Address   string
 	var Created   int
-	if err = row.Scan(&UserId, &Nickname, &Openid, &Gender, &AvatarUrl, &Country, &Province, &City, &Address, &Created);err != nil {
+	var Phone string
+	if err = row.Scan(&UserId, &Nickname, &Openid, &Gender, &AvatarUrl, &Country, &Province, &City, &Address, &Created,&Phone);err != nil {
 		return
 	}
 	u = &User{
@@ -92,6 +91,7 @@ func ScanRow (row *sql.Row) (u *User,err error) {
 		City,
 		Address,
 		Created,
+		Phone,
 	}
 	return
 }

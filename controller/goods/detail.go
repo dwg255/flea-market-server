@@ -6,6 +6,7 @@ import (
 	"flea-market/model/dialogModel"
 	"flea-market/model/goodsModel"
 	"flea-market/model/starModel"
+	"flea-market/model/userModel"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -34,13 +35,14 @@ func Detail(c *gin.Context) {
 					isStar = true
 				}
 
-				total,_ := goodsModel.GetCount(" where user_id = " + strconv.Itoa(goods.GoodsId))
-
+				total,_ := goodsModel.GetCount(" where user_id = " + strconv.Itoa(goods.UserId))
+				u,_ := userModel.GetUserById(goods.UserId)
 				c.JSON(http.StatusOK,gin.H {
 					"goodsInfo":goods,
 					"dialogList":dialogList,
 					"star":isStar,
 					"goods_num":total,
+					"phone":u.Phone,
 				})
 				//fmt.Println("[before] ",goods)
 				goods.ViewsNum ++

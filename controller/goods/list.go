@@ -55,21 +55,16 @@ func List(c *gin.Context) {
 		}
 	}
 
-	//where := ""
-	if listParams.CatId != 0 {
-		where += " where cat_id = " + strconv.Itoa(listParams.CatId)
-	}
-
 	if count,err := goodsModel.GetCount(where,args...); err != nil {
 		c.JSON(http.StatusBadRequest,gin.H{"msg":err.Error()})
 		return
 	} else {
 		if count == 0 {
-			c.JSON(http.StatusOK,gin.H{"total":0})
+			c.JSON(http.StatusOK,gin.H{"total":0,"list":[]interface{}{},"msg":"无更多内容"})
 		} else {
 			//fmt.Println(count)
 			if listParams.PageSize * (listParams.PageNum - 1) >= count {
-				c.JSON(http.StatusOK,gin.H{"msg":"无更多内容"})
+				c.JSON(http.StatusOK,gin.H{"total":0,"list":[]interface{}{},"msg":"无更多内容"})
 				return
 			}
 			where += " limit ?,? "
@@ -79,10 +74,6 @@ func List(c *gin.Context) {
 				return
 			} else {
 				if len(list) >0 {
-					type res struct {
-						goodsModel.Goods
-						dialogModel.Dialog
-					}
 					where := " where id in (select max(id) from f_dialog group by goods_id having goods_id in ("
 					for i:= 0; i< len(list);i++ {
 						where += strconv.Itoa(list[i].GoodsId) + ","
@@ -103,7 +94,7 @@ func List(c *gin.Context) {
 						}
 					}
 
-					c.JSON(http.StatusOK,gin.H{"list":list,"total":count,"page_size":listParams.PageSize})
+					c.JSON(http.StatusOK,gin.H{"list":list,"total":count,"page_size":listParams.PageSize,"msg":"成功！"})
 					return
 				}
 			}
